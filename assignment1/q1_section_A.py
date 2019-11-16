@@ -39,5 +39,5 @@ plt.plot(z_w, x0_i_list, color='blue')
 plt.plot(z_w, x1_i_list, color='green')
 plt.title("avi's perspective projections")
 plt.show()
-plt.savefig("avi")
+plt.savefig("avi_perspective.png")
 
