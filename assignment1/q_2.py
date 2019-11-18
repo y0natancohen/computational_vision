@@ -98,90 +98,135 @@ errors = [((x-y)/x).tolist() for x, y in zip(corners_list[0], projected_points)]
 
 ########################################### F ################################################
 image_num = 1
-cube_world_points = np.array([
-    [0, 0, 0],
-    [1, 0, 0],
-    [0, 1, 0],
-    [1, 1, 0],
-    [0, 0, 1],
-    [1, 0, 1],
-    [0, 1, 1],
-    [1, 1, 1],
-], dtype=float)
-print 'world_points_list[image_num]'
-print world_points_list[image_num]
-print
-print
-print
-print
-print 'cube_world_points'
-print cube_world_points
-cube_projected_point, _ = cv2.projectPoints(cube_world_points, rvecs[image_num], tvecs[image_num], cameraMatrix, distCoeffs)
-print
-print
-print
-print
-print
-print 'projected_points_1'
-print cube_projected_point
 
-# rotating
-teta = np.pi/3
+
+def square_to_cube(square):
+    c = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+        [1, 1, 0],
+        [0, 0, 1],
+        [1, 0, 1],
+        [0, 1, 1],
+        [1, 1, 1],
+    ], dtype=float)
+    c[:4, :2] = square
+    c[4:8, :2] = square
+    return c
+
+
+square = np.array([
+    [0, 0],
+    [1, 0],
+    [0, 1],
+    [1, 1],
+], dtype=float)
+cube = square_to_cube(square)
+
+teta = np.pi/6
 rotation_mat = np.array([
-    [np.cos(teta), -np.sin(teta), 0],
-    [np.sin(teta), np.cos(teta), 0],
-    [0, 0, 1]
+    [np.cos(teta), -np.sin(teta)],
+    [np.sin(teta), np.cos(teta)],
 ], dtype=float)
+rotated_square = np.array([rotation_mat.dot(p) for p in square], dtype=float)
+rotated_cube = square_to_cube(rotated_square)
+g=3
 
-
-def to_homogonos(vec):
-    arr = np.ones(len(vec) + 1, dtype=float)
-    arr[0:len(vec)] = vec
-    return arr
-
-homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in cube_projected_point]).transpose()
-# homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in projected_points_1])
-traslatation_mat = np.array([
-    [1, 0, -cube_projected_point[0][0][0]],
-    [0, 1, -cube_projected_point[0][0][1]],
-    [0, 0, 1]
-], dtype=float)
-
-traslatation_back_mat = np.array([
-    [1, 0, cube_projected_point[0][0][0]],
-    [0, 1, cube_projected_point[0][0][1]],
-    [0, 0, 1]
-], dtype=float)
-
-# rotated_points = [rotation_mat * x[0] for x in projected_points_1]
-rotated_points = [x.dot(rotation_mat) for x in homogonos_projected_points_1]
-# rotated_points_hom = (traslatation_back_mat * rotation_mat * traslatation_mat).dot(homogonos_projected_points_1)
-# rotated_points_hom = rotated_points_hom.transpose()
-# rotated_points = [np.array(x[0:2]) for x in rotated_points_hom]
+# cube_projected_points, _ = cv2.projectPoints(cube, rvecs[image_num], tvecs[image_num], cameraMatrix, distCoeffs)
+cube_projected_points, _ = cv2.projectPoints(rotated_cube, rvecs[image_num], tvecs[image_num], cameraMatrix, distCoeffs)
+# cube_projected_points = rotated_cube_projected_points
+image_num = 1
 image_1 = images[image_num]
-# print rotated_points[0]
-# to_tuple = lambda arr: tuple([int(x) for x in arr[0]])  # this version is for the drawing without rotation
-to_tuple = lambda arr: tuple([int(x) for x in arr])
-# cv2.line(image_1, (1, 3), (2, 4), color=3)
-cv2.line(image_1, to_tuple(rotated_points[0]), to_tuple(rotated_points[0]), color=3)
+to_tuple = lambda arr: tuple([int(x) for x in arr[0]])
+cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[1]), color=3)
 # drawing lines
-cv2.line(image_1, to_tuple(rotated_points[0]), to_tuple(rotated_points[2]), color=3)
-cv2.line(image_1, to_tuple(rotated_points[0]), to_tuple(rotated_points[4]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[2]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[4]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[5]), to_tuple(cube_projected_points[4]), color=3)
 
-cv2.line(image_1, to_tuple(rotated_points[1]), to_tuple(rotated_points[3]), color=3)
-cv2.line(image_1, to_tuple(rotated_points[1]), to_tuple(rotated_points[5]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[1]), to_tuple(cube_projected_points[3]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[1]), to_tuple(cube_projected_points[5]), color=3)
 
-cv2.line(image_1, to_tuple(rotated_points[5]), to_tuple(rotated_points[4]), color=3)
-cv2.line(image_1, to_tuple(rotated_points[5]), to_tuple(rotated_points[7]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[5]), to_tuple(cube_projected_points[4]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[5]), to_tuple(cube_projected_points[7]), color=3)
 
-cv2.line(image_1, to_tuple(rotated_points[7]), to_tuple(rotated_points[6]), color=3)
-cv2.line(image_1, to_tuple(rotated_points[7]), to_tuple(rotated_points[3]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[7]), to_tuple(cube_projected_points[6]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[7]), to_tuple(cube_projected_points[3]), color=3)
 
-cv2.line(image_1, to_tuple(rotated_points[4]), to_tuple(rotated_points[6]), color=3)
-cv2.line(image_1, to_tuple(rotated_points[4]), to_tuple(rotated_points[5]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[4]), to_tuple(cube_projected_points[6]), color=3)
+cv2.line(image_1, to_tuple(cube_projected_points[4]), to_tuple(cube_projected_points[5]), color=3)
 
-cv2.line(image_1, to_tuple(rotated_points[2]), to_tuple(rotated_points[6]), color=3)
-
-cv2.imshow('image1', image_1)
+cv2.line(image_1, to_tuple(cube_projected_points[2]), to_tuple(cube_projected_points[6]), color=3)
+cv2.imshow('cube', image_1)
 cv2.waitKey(0)
 
+#
+# print
+# print
+# print
+# print
+# print
+# print 'projected_points_1'
+# print cube_projected_point
+#
+# # rotating
+# # teta = np.pi/3
+# # rotation_mat = np.array([
+# #     [np.cos(teta), -np.sin(teta), 0],
+# #     [np.sin(teta), np.cos(teta), 0],
+# #     [0, 0, 1]
+# # ], dtype=float)
+#
+#
+# # def to_homogonos(vec):
+# #     arr = np.ones(len(vec) + 1, dtype=float)
+# #     arr[0:len(vec)] = vec
+# #     return arr
+#
+# homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in cube_projected_point]).transpose()
+# # homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in projected_points_1])
+# # traslatation_mat = np.array([
+# #     [1, 0, -cube_projected_point[0][0][0]],
+# #     [0, 1, -cube_projected_point[0][0][1]],
+# #     [0, 0, 1]
+# # ], dtype=float)
+# #
+# # traslatation_back_mat = np.array([
+# #     [1, 0, cube_projected_point[0][0][0]],
+# #     [0, 1, cube_projected_point[0][0][1]],
+# #     [0, 0, 1]
+# # ], dtype=float)
+#
+# # rotated_points = [rotation_mat * x[0] for x in projected_points_1]
+# cube_projected_points = [x.dot(rotation_mat) for x in homogonos_projected_points_1]
+# # rotated_points_hom = (traslatation_back_mat * rotation_mat * traslatation_mat).dot(homogonos_projected_points_1)
+# # rotated_points_hom = rotated_points_hom.transpose()
+# # rotated_points = [np.array(x[0:2]) for x in rotated_points_hom]
+# image_1 = images[image_num]
+# # print rotated_points[0]
+# # to_tuple = lambda arr: tuple([int(x) for x in arr[0]])  # this version is for the drawing without rotation
+# to_tuple = lambda arr: tuple([int(x) for x in arr])
+# # cv2.line(image_1, (1, 3), (2, 4), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[0]), color=3)
+# # drawing lines
+# cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[2]), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[0]), to_tuple(cube_projected_points[4]), color=3)
+#
+# cv2.line(image_1, to_tuple(cube_projected_points[1]), to_tuple(cube_projected_points[3]), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[1]), to_tuple(cube_projected_points[5]), color=3)
+#
+# cv2.line(image_1, to_tuple(cube_projected_points[5]), to_tuple(cube_projected_points[4]), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[5]), to_tuple(cube_projected_points[7]), color=3)
+#
+# cv2.line(image_1, to_tuple(cube_projected_points[7]), to_tuple(cube_projected_points[6]), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[7]), to_tuple(cube_projected_points[3]), color=3)
+#
+# cv2.line(image_1, to_tuple(cube_projected_points[4]), to_tuple(cube_projected_points[6]), color=3)
+# cv2.line(image_1, to_tuple(cube_projected_points[4]), to_tuple(cube_projected_points[5]), color=3)
+#
+# cv2.line(image_1, to_tuple(cube_projected_points[2]), to_tuple(cube_projected_points[6]), color=3)
+#
+# cv2.imshow('image1', image_1)
+# cv2.waitKey(0)
+#
