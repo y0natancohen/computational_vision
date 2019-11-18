@@ -70,11 +70,11 @@ k_mat = np.zeros((4, 4))
 k_mat[:row, :col] = cameraMatrix
 f_mat[row, col] = 1
 
-print 'f_mat'
-print f_mat
-
-print "rod"
-print r_matrix
+# print 'f_mat'
+# print f_mat
+#
+# print "rod"
+# print r_matrix
 
 
 m_mat = k_mat * f_mat
@@ -116,14 +116,14 @@ print
 print
 print 'cube_world_points'
 print cube_world_points
-projected_points_1, _ = cv2.projectPoints(cube_world_points, rvecs[image_num], tvecs[image_num], cameraMatrix, distCoeffs)
+cube_projected_point, _ = cv2.projectPoints(cube_world_points, rvecs[image_num], tvecs[image_num], cameraMatrix, distCoeffs)
 print
 print
 print
 print
 print
 print 'projected_points_1'
-print projected_points_1
+print cube_projected_point
 
 # rotating
 teta = np.pi/3
@@ -139,25 +139,25 @@ def to_homogonos(vec):
     arr[0:len(vec)] = vec
     return arr
 
-homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in projected_points_1]).transpose()
+homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in cube_projected_point]).transpose()
 # homogonos_projected_points_1 = np.array([to_homogonos(x[0]) for x in projected_points_1])
 traslatation_mat = np.array([
-    [1, 0, -projected_points_1[0][0][0]],
-    [0, 1, -projected_points_1[0][0][1]],
+    [1, 0, -cube_projected_point[0][0][0]],
+    [0, 1, -cube_projected_point[0][0][1]],
     [0, 0, 1]
 ], dtype=float)
 
 traslatation_back_mat = np.array([
-    [1, 0, projected_points_1[0][0][0]],
-    [0, 1, projected_points_1[0][0][1]],
+    [1, 0, cube_projected_point[0][0][0]],
+    [0, 1, cube_projected_point[0][0][1]],
     [0, 0, 1]
 ], dtype=float)
 
 # rotated_points = [rotation_mat * x[0] for x in projected_points_1]
-# rotated_points = [x.dot(rotation_mat) for x in homogonos_projected_points_1]
-rotated_points_hom = (traslatation_back_mat * rotation_mat * traslatation_mat).dot(homogonos_projected_points_1)
-rotated_points_hom = rotated_points_hom.transpose()
-rotated_points = [np.array(x[0:2]) for x in rotated_points_hom]
+rotated_points = [x.dot(rotation_mat) for x in homogonos_projected_points_1]
+# rotated_points_hom = (traslatation_back_mat * rotation_mat * traslatation_mat).dot(homogonos_projected_points_1)
+# rotated_points_hom = rotated_points_hom.transpose()
+# rotated_points = [np.array(x[0:2]) for x in rotated_points_hom]
 image_1 = images[image_num]
 # print rotated_points[0]
 # to_tuple = lambda arr: tuple([int(x) for x in arr[0]])  # this version is for the drawing without rotation
